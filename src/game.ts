@@ -1,5 +1,7 @@
 // Define the canvas and context
 const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+canvas.width = window.innerWidth - 100;
+canvas.height = window.innerHeight - 100;
 const ctx = canvas.getContext("2d");
 
 // Define the player object
@@ -31,6 +33,19 @@ function gameLoop() {
   }
   if (keys.right) {
     player.x += player.speed;
+  }
+
+  if (player.x > canvas.width) {
+    player.x = 0;
+  }
+  if (player.y > canvas.height) {
+    player.y = 0;
+  }
+  if (player.x < 0) {
+    player.x = canvas.width;
+  }
+  if (player.y < 0) {
+    player.y = canvas.height;
   }
 
   // Request the next animation frame
