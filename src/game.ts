@@ -1,29 +1,80 @@
-// Define a variable to hold the random number
-let randomNumber: number;
+// Define the canvas and context
+const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+const ctx = canvas.getContext("2d");
 
-// Define a variable to hold the number of guesses
-let numberOfGuesses: number = 0;
+// Define the player object
+const player = {
+  x: 50,
+  y: 50,
+  width: 20,
+  height: 20,
+  speed: 5,
+};
 
-// Generate a random number between 1 and 100
-randomNumber = Math.floor(Math.random() * 100) + 1;
+// Define the game loop function
+function gameLoop() {
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Get a guess from the player
-let guess: number = Number(prompt("Guess a number between 1 and 100"));
+  // Draw the player
+  ctx.fillRect(player.x, player.y, player.width, player.height);
 
-// Check the guess against the random number
-while (numberOfGuesses < 10) {
-  numberOfGuesses++;
-  if (guess === randomNumber) {
-    alert(`You guessed the number in ${numberOfGuesses} tries!`);
-    break;
-  } else if (guess < randomNumber) {
-    guess = Number(prompt("Too low. Guess again."));
-  } else {
-    guess = Number(prompt("Too high. Guess again."));
+  // Move the player based on keyboard input
+  if (keys.up) {
+    player.y -= player.speed;
   }
+  if (keys.down) {
+    player.y += player.speed;
+  }
+  if (keys.left) {
+    player.x -= player.speed;
+  }
+  if (keys.right) {
+    player.x += player.speed;
+  }
+
+  // Request the next animation frame
+  requestAnimationFrame(gameLoop);
 }
 
-if (numberOfGuesses === 10) {
-  alert(`You ran out of guesses. The number was ${randomNumber}.`);
-}
+// Define the keyboard input handling
+const keys = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+};
+
+document.addEventListener("keydown", (event) => {
+  if (event.code === "ArrowUp") {
+    keys.up = true;
+  }
+  if (event.code === "ArrowDown") {
+    keys.down = true;
+  }
+  if (event.code === "ArrowLeft") {
+    keys.left = true;
+  }
+  if (event.code === "ArrowRight") {
+    keys.right = true;
+  }
+});
+
+document.addEventListener("keyup", (event) => {
+  if (event.code === "ArrowUp") {
+    keys.up = false;
+  }
+  if (event.code === "ArrowDown") {
+    keys.down = false;
+  }
+  if (event.code === "ArrowLeft") {
+    keys.left = false;
+  }
+  if (event.code === "ArrowRight") {
+    keys.right = false;
+  }
+});
+
+// Start the game loop
+gameLoop();
 
