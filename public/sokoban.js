@@ -1,23 +1,69 @@
-var gameWidth = 512;
-var gameHeight = 512;
-var tileWidth = 32;
-var tileHeight = 32;
+var windowWidth = window.innerWidth;
+var windowHeight = window.innerHeight;
+var levels = [
+    [
+        '#######',
+        '#@   G#',
+        '#     #',
+        '#     #',
+        '####B##',
+        '#     #',
+        '#     #',
+        '#     #',
+        '#######',
+    ],
+    [
+        '######',
+        '#    #',
+        '#@BG #',
+        '######'
+    ],
+    [
+        '##########',
+        '#    @   #',
+        '##       #',
+        ' #       #',
+        ' #########'
+    ]
+];
+// Find the maximum width and height of any level
+var maxLevelWidth = 0;
+var maxLevelHeight = 0;
+for (var i = 0; i < levels.length; i++) {
+    if (levels[i].length > maxLevelHeight) {
+        maxLevelHeight = levels[i].length;
+    }
+    for (var j = 0; j < levels[i].length; j++) {
+        if (levels[i][j].length > maxLevelWidth) {
+            maxLevelWidth = levels[i][j].length;
+        }
+    }
+}
+// Make sure that the grid is square and fits every level
+var gameHeight = Math.round(windowHeight * .9);
+var gameWidth = Math.round(windowWidth * .9);
+var tileWidth = Math.round(Math.min(gameWidth / maxLevelWidth, gameHeight / maxLevelHeight));
+var tileHeight = tileWidth;
+var currentLevel = 0;
 var drawnObject = /** @class */ (function () {
-    function drawnObject(gridx, gridy, width, height, color, pushable) {
+    function drawnObject(gridx, gridy, width, height, color, pushable, isGoal) {
+        if (isGoal === void 0) { isGoal = false; }
         this.gridx = gridx;
         this.gridy = gridy;
         this.x = gridx * tileWidth;
-        this.y = gridy * tileWidth;
+        this.y = gridy * tileHeight;
         this.width = width;
         this.height = height;
         this.color = color;
         this.pushable = pushable;
+        this.isGoal = isGoal;
+        console.log('created an object with width ' + width + ' and height ' + height);
     }
     drawnObject.prototype.newGridPos = function (newx, newy) {
         this.gridx = newx;
         this.gridy = newy;
         this.x = newx * tileWidth;
-        this.y = newy * tileWidth;
+        this.y = newy * tileHeight;
     };
     drawnObject.prototype.draw = function (ctx) {
         ctx.fillStyle = this.color;
@@ -28,14 +74,13 @@ var drawnObject = /** @class */ (function () {
 var Game = /** @class */ (function () {
     function Game(grid) {
         this.grid = grid;
-        //    this.playerPosition = this.findPlayerPosition();
-        this.player = new drawnObject(this.findPlayerPosition().x, this.findPlayerPosition().y, tileWidth, tileWidth, 'green', false);
+        this.player = new drawnObject(this.findPlayerPosition().x, this.findPlayerPosition().y, tileWidth, tileHeight, 'blue', false);
         console.log(this.player);
         this.obstacles = [];
         this.findObstacles();
         console.log(this.obstacles);
-        // Get canvas element and context
-        //    this.canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+        this.currentLevel = 0;
+        // Create canvas element and context
         this.canvas = document.createElement('canvas');
         this.ctx = this.canvas.getContext('2d');
         this.canvas.width = gameWidth;
@@ -44,6 +89,22 @@ var Game = /** @class */ (function () {
         // Add event listener for player input
         window.addEventListener('keydown', this.handleInput.bind(this));
     }
+    Game.prototype.findObstacles = function () {
+        for (var y = 0; y < this.grid.length; y++) {
+            for (var x = 0; x < this.grid[y].length; x++) {
+                if (this.grid[y][x] === '#') {
+                    this.obstacles.push(new drawnObject(x, y, tileWidth, tileHeight, 'gray', false));
+                }
+                if (this.grid[y][x] === 'B') {
+                    this.obstacles.push(new drawnObject(x, y, tileWidth, tileHeight, 'brown', true));
+                }
+                if (this.grid[y][x] === 'G') {
+                    this.obstacles.push(new drawnObject(x, y, tileWidth, tileHeight, 'green', true, true));
+                }
+            }
+        }
+    };
+    // Use the arrow keys to move
     Game.prototype.handleInput = function (event) {
         switch (event.key) {
             case 'ArrowLeft':
@@ -60,18 +121,6 @@ var Game = /** @class */ (function () {
                 break;
             default:
                 break;
-        }
-    };
-    Game.prototype.findObstacles = function () {
-        for (var y = 0; y < this.grid.length; y++) {
-            for (var x = 0; x < this.grid[y].length; x++) {
-                if (this.grid[y][x] === '#') {
-                    this.obstacles.push(new drawnObject(x, y, tileWidth, tileHeight, 'gray', false));
-                }
-                if (this.grid[y][x] === 'B') {
-                    this.obstacles.push(new drawnObject(x, y, tileWidth, tileHeight, 'brown', true));
-                }
-            }
         }
     };
     Game.prototype.getObstacleAtPosition = function (x, y) {
@@ -100,8 +149,12 @@ var Game = /** @class */ (function () {
         if (this.isOutOfBounds(newPosition) || this.isWall(newPosition)) {
             return false;
         }
-        // Can't push an object into another object
+        // Can't push an object into another object, unless that object is the goal
         if (this.getObstacleAtPosition(newPosition.x, newPosition.y) !== null) {
+            if (this.getObstacleAtPosition(newPosition.x, newPosition.y).isGoal) {
+                this.currentLevel++;
+                this.changeLevel(levels[this.currentLevel]);
+            }
             return false;
         }
         // Update the grid
@@ -123,8 +176,6 @@ var Game = /** @class */ (function () {
             // Try to push the object
             if (!this.pushObject(obstacle, dx, dy)) {
                 return;
-                //        this.grid[this.player.gridy][this.player.gridx] = ' ';
-                //        this.grid[newPosition.y][newPosition.x] = '@';
             }
         }
         // Update the state array
@@ -138,6 +189,16 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.isWall = function (position) {
         return this.grid[position.y][position.x] === '#';
+    };
+    Game.prototype.changeLevel = function (level) {
+        this.grid = [];
+        for (var _i = 0, level_1 = level; _i < level_1.length; _i++) {
+            var str = level_1[_i];
+            this.grid.push(str.split(''));
+        }
+        this.obstacles = [];
+        this.findObstacles();
+        this.player.newGridPos(this.findPlayerPosition().x, this.findPlayerPosition().y);
     };
     Game.prototype.printGrid = function () {
         for (var _i = 0, _a = this.grid; _i < _a.length; _i++) {
@@ -162,21 +223,12 @@ var Game = /** @class */ (function () {
     return Game;
 }());
 // Example usage:
-var grid = [
-    ['#', '#', '#', '#', '#', '#', '#', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', '@', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', '#', '#', ' ', ' ', '#'],
-    ['#', ' ', ' ', '#', '#', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', 'B', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
-    ['#', '#', '#', '#', '#', '#', '#', '#'],
-];
-var game = new Game(grid);
+var grid = levels[0];
+var grid1 = [];
+for (var _i = 0, grid_1 = grid; _i < grid_1.length; _i++) {
+    var str = grid_1[_i];
+    grid1.push(str.split(''));
+}
+var game = new Game(grid1);
 game.printGrid(); // prints the initial grid
 game.gameLoop();
