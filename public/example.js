@@ -1,3 +1,4 @@
+"use strict";
 var Game = /** @class */ (function () {
     function Game() {
         var _this = this;

@@ -1,3 +1,4 @@
+"use strict";
 // Define the canvas and context
 var canvas = document.getElementById("game-canvas");
 canvas.width = window.innerWidth - 100;
@@ -72,7 +73,7 @@ var keys = {
     up: false,
     down: false,
     left: false,
-    right: false
+    right: false,
 };
 document.addEventListener("keydown", function (event) {
     if (event.code === "ArrowUp") {
