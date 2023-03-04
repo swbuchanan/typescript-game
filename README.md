@@ -1,2 +1,2 @@
 # typescript-game
-A simple game for the purpose of learning how to make typescript webapps.
+A simple game with the purpose of learning how to make typescript webapps.
