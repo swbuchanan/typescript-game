@@ -4,15 +4,15 @@ const windowHeight = window.innerHeight;
 
 const levels = [
   [
-    '#######',
-    '#@   G#',
-    '#     #',
-    '#     #',
-    '####B##',
-    '#     #',
-    '#     #',
-    '#     #',
-    '#######',
+    '#####   ',
+    '#   #####',
+    '# #    G#',
+    '#   # ###',
+    '##    # ',
+    ' #B## # ',
+    ' #    # ',
+    ' #@ ### ',
+    ' ####   ',
   ],
   [
     '######',
@@ -21,15 +21,23 @@ const levels = [
     '######'
   ],
   [
-    '##########',
-    '#    @   #',
-    '##       #',
-    ' #       #',
-    ' #########'
+    '###############################',
+    '#    @        #',
+    '##            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' #            #',
+    ' ##############',
   ]
 ]
 
-// Find the maximum width and height of any level
+// Find the maximum width and height over all levels
 let maxLevelWidth: number = 0;
 let maxLevelHeight: number = 0;
 for (let i = 0; i < levels.length; i++) {
@@ -74,7 +82,6 @@ class drawnObject {
     this.color = color;
     this.pushable = pushable;
     this.isGoal = isGoal;
-    console.log('created an object with width ' + width + ' and height ' + height);
   }
 
   public newGridPos(newx: number, newy: number): void {
@@ -94,7 +101,6 @@ class drawnObject {
 
 class Game {
   private grid: string[][];
-  private playerPosition: positionTuple;
   private obstacles: drawnObject[];
   private player: drawnObject;
   private canvas: HTMLCanvasElement;
@@ -119,6 +125,7 @@ class Game {
 
     // Add event listener for player input
     window.addEventListener('keydown', this.handleInput.bind(this));
+    window.addEventListener('click', this.handleMouseInput.bind(this));
   }
 
   private findObstacles(): void {
@@ -161,8 +168,13 @@ class Game {
     }
   }
 
+  // Use the mouse to edit a level
+  private handleMouseInput(event: MouseEvent): void {
 
-  private getObstacleAtPosition(x: number, y: number): drawnObject {
+  }
+
+
+  private getObstacleAtPosition(x: number, y: number): drawnObject | null {
     for (let obstacle of this.obstacles) {
       if (obstacle.gridx === x && obstacle.gridy === y) {
         return obstacle;
@@ -207,7 +219,6 @@ class Game {
     // Move the thing
     thing.newGridPos(newPosition.x, newPosition.y);
     return true;
-
   }
 
   public movePlayer(dx: number, dy: number): void {
@@ -217,8 +228,6 @@ class Game {
     if (this.isOutOfBounds(newPosition) || this.isWall(newPosition)) {
       return;
     }
-
-
 
     // Check if we are moving into an object
     let obstacle = this.getObstacleAtPosition(newPosition.x, newPosition.y);
@@ -251,10 +260,13 @@ class Game {
     for (const str of level) {
       this.grid.push(str.split(''));
     }
+    this.updateGrid();
+  }
+
+  public updateGrid(): void {
     this.obstacles = [];
     this.findObstacles();
     this.player.newGridPos(this.findPlayerPosition().x, this.findPlayerPosition().y);
-
   }
 
   public printGrid(): void {
@@ -282,9 +294,7 @@ class Game {
 }
 
 
-// Example usage:
 const grid = levels[0];
-
 
 const grid1 = [];
 for (const str of grid) {

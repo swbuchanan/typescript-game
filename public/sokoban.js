@@ -1,17 +1,16 @@
-"use strict";
 var windowWidth = window.innerWidth;
 var windowHeight = window.innerHeight;
 var levels = [
     [
-        '#######',
-        '#@   G#',
-        '#     #',
-        '#     #',
-        '####B##',
-        '#     #',
-        '#     #',
-        '#     #',
-        '#######',
+        '#####   ',
+        '#   #####',
+        '# #    G#',
+        '#   # ###',
+        '##    # ',
+        ' #B## # ',
+        ' #    # ',
+        ' #@ ### ',
+        ' ####   ',
     ],
     [
         '######',
@@ -20,14 +19,22 @@ var levels = [
         '######'
     ],
     [
-        '##########',
-        '#    @   #',
-        '##       #',
-        ' #       #',
-        ' #########'
+        '###############################',
+        '#    @        #',
+        '##            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' #            #',
+        ' ##############',
     ]
 ];
-// Find the maximum width and height of any level
+// Find the maximum width and height over all levels
 var maxLevelWidth = 0;
 var maxLevelHeight = 0;
 for (var i = 0; i < levels.length; i++) {
@@ -58,7 +65,6 @@ var drawnObject = /** @class */ (function () {
         this.color = color;
         this.pushable = pushable;
         this.isGoal = isGoal;
-        console.log('created an object with width ' + width + ' and height ' + height);
     }
     drawnObject.prototype.newGridPos = function (newx, newy) {
         this.gridx = newx;
@@ -89,6 +95,7 @@ var Game = /** @class */ (function () {
         document.body.appendChild(this.canvas);
         // Add event listener for player input
         window.addEventListener('keydown', this.handleInput.bind(this));
+        window.addEventListener('click', this.handleMouseInput.bind(this));
     }
     Game.prototype.findObstacles = function () {
         for (var y = 0; y < this.grid.length; y++) {
@@ -123,6 +130,9 @@ var Game = /** @class */ (function () {
             default:
                 break;
         }
+    };
+    // Use the mouse to edit a level
+    Game.prototype.handleMouseInput = function (event) {
     };
     Game.prototype.getObstacleAtPosition = function (x, y) {
         for (var _i = 0, _a = this.obstacles; _i < _a.length; _i++) {
@@ -197,6 +207,9 @@ var Game = /** @class */ (function () {
             var str = level_1[_i];
             this.grid.push(str.split(''));
         }
+        this.updateGrid();
+    };
+    Game.prototype.updateGrid = function () {
         this.obstacles = [];
         this.findObstacles();
         this.player.newGridPos(this.findPlayerPosition().x, this.findPlayerPosition().y);
@@ -223,7 +236,6 @@ var Game = /** @class */ (function () {
     };
     return Game;
 }());
-// Example usage:
 var grid = levels[0];
 var grid1 = [];
 for (var _i = 0, grid_1 = grid; _i < grid_1.length; _i++) {
